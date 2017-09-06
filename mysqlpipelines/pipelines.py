@@ -18,6 +18,9 @@ class DingdianPipeline(object):
                 xs_name = item['name']
                 xs_author = item['author']
                 category = item['category']
+                novelurl = item['novelurl']
+                serialstatus = item['serialstatus']
+                serialnumber = item['serialnumber']
                 Sql.insert_dd_name(xs_name, xs_author, category, name_id)
                 print('开始存小说标题')
         if isinstance(item, DcontentItem):

@@ -13,13 +13,16 @@ cur = cnx.cursor(buffered=True)
 class Sql:
 
     @classmethod
-    def insert_dd_name(cls, xs_name, xs_author, category, name_id):
-        sql = 'INSERT INTO dd_name (`xs_name`, `xs_author`, `category`, `name_id`) VALUES (%(xs_name)s, %(xs_author)s, %(category)s, %(name_id)s)'
+    def insert_dd_name(cls, xs_name, xs_author, category, name_id,  novelurl, serialstatus, serialnumber):
+        sql = 'INSERT INTO dd_name (`xs_name`, `xs_author`, `category`, `name_id`, `novelurl`, `serialstatus`, `serialnumber`) VALUES (%(xs_name)s, %(xs_author)s, %(category)s, %(name_id)s,%(novelurl)s,%(serialstatus)s,%(serialnumber)s)'
         value = {
             'xs_name': xs_name,
             'xs_author': xs_author,
             'category': category,
-            'name_id': name_id
+            'name_id': name_id,
+            'novelurl': novelurl,
+            'serialstatus': serialstatus,
+            'serialnumber': serialnumber
         }
         cur.execute(sql, value)
         cnx.commit()
