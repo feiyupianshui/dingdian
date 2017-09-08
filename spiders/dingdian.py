@@ -56,6 +56,37 @@ class Myspider(scrapy.Spider):
         yield item
             yield Request(url=bash_url, callback=self.get_chapter, meta={'name_id': name_id})
 
+
+    def get_chapter(self, response):
+        name_id = response.meta['name_id']
+        urls = re.findall(r'<td class="L"><a href=(.*?)>(.*?)</a></td>', response.text)
+        num = 0
+        for url in urls:
+            num = num + 1
+            chapterurl = response.url + str(url[0]).split("\"")[1]
+            chaptername = url[1]
+            rets = Sql.select_chapter(chapterurl)
+            if rets[0] == 1:
+                print('章节已经存在了')
+            else:
+                yield Request(chapterurl, callback=self.get_chaptercontent, meta={'num': num,
+                                                                                  'chapterurl': chapterurl,
+                                                                                  'name_id': name_id,
+                                                                                  "chaptername": chaptername
+                                                                                  })
+    def get_chaptercontent(self, response):
+        item = DcontentItem()
+        try:
+            content = BeautifulSoup(response.text, 'lxml').find('dd', id='contents').get_text()
+            item['chaptercontent'] = str(content).replace('\xa0', '')[0:20]
+        except AttributeError:
+            print('跳过')
+        item['num'] = response.meta['num']
+        item['chapterurl'] = response.meta['chapterurl']
+        item['id_name'] = response.meta['name_id']
+        item['chaptername'] = str(response.meta['chaptername']).replace('\xa0', '')
+        return item
+
     # def get_chapterurl(self, response):
     #     item = DingdianItem()
     #     item['name'] = str(response.meta['name']).replace('\xa0', '')
@@ -70,30 +101,31 @@ class Myspider(scrapy.Spider):
     #     yield item
     #     yield Request(url=bash_url, callback=self.get_chapter, meta={'name_id': name_id})
     #
-    def get_chapter(self, response):
-        urls = re.findall(r'<td class="L"><a href="(.*?)">(.*?)</a></td>', response.text)
-        num = 0
-        for url in urls:
-            num = num + 1
-            chapterurl = response.url + url[0]
-            chaptername = url[1]
-            rets = Sql.sclect_chapter(chapterurl)
-            if rets[0] == 1:
-                print('章节已经存在了')
-                return False
-            else:
-                yield Request(chapterurl, callback=self.get_chaptercontent, meta={'num': num,
-                                                                                  'name_id': response.meta['name_id'],
-                                                                                  'chaptername': chaptername,
-                                                                                  'chapterurl': chapterurl
-                                                                                  })
-    def get_chaptercontent(self, response):
-        item = DcontentItem()
-        item['num'] = response.meta['num']
-        item['id_name'] = response.meta['name_id']
-        item['chaptername'] = str(response.meta['chaptername']).replace('\xa0', '')
-        item['chapterurl'] = response.meta['chapterurl']
-        content = BeautifulSoup(response.text, 'lxml').find('dd', id='contents').get_text()
-        item['chaptercontent'] = str(content).replace('\xa0', '')
-        yield item
+    # def get_chapter(self, response):
+    #     urls = re.findall(r'<td class="L"><a href="(.*?)">(.*?)</a></td>', response.text)
+    #     num = 0
+    #     for url in urls:
+    #         num = num + 1
+    #         chapterurl = response.url + url[0]
+    #         chaptername = url[1]
+    #         rets = Sql.sclect_chapter(chapterurl)
+    #         if rets[0] == 1:
+    #             print('章节已经存在了')
+    #             return False
+    #         else:
+    #             yield Request(chapterurl, callback=self.get_chaptercontent, meta={'num': num,
+    #                                                                               'name_id': response.meta['name_id'],
+    #                                                                               'chaptername': chaptername,
+    #                                                                               'chapterurl': chapterurl
+    #                                                                               })
+    # def get_chaptercontent(self, response):
+    #     item = DcontentItem()
+    #     item['num'] = response.meta['num']
+    #     item['id_name'] = response.meta['name_id']
+    #     item['chaptername'] = str(response.meta['chaptername']).replace('\xa0', '')
+    #     item['chapterurl'] = response.meta['chapterurl']
+    #     content = BeautifulSoup(response.text, 'lxml').find('dd', id='contents').get_text()
+    #     item['chaptercontent'] = str(content).replace('\xa0', '')
+    #     yield item
+
 
